@@ -13,6 +13,7 @@ export const clerkWebhooks=async(req,res)=>{
         const { data,type}=JSON.parse(req.body.toString())
         switch(type){
             case 'user.created':{
+                console.log("CLERK DATA:", data);
                 const userData={
                     _id:data.id,
                     // email:data.email_addresses[0].email_address,
