@@ -31,6 +31,8 @@ console.log("EMAIL ADDRESSES:", JSON.stringify(data.email_addresses, null, 2));
                 break;
             }
             case 'user.updated':{
+                console.log("UPDATED IMAGE URL:", data.image_url);
+console.log("UPDATED PROFILE IMAGE URL:", data.profile_image_url);
                 const userData={
                     email:data.email_addresses[0].email_address,
                     name:data.first_name+" "+data.last_name,
