@@ -13,8 +13,8 @@ export const clerkWebhooks=async(req,res)=>{
         const { data,type}=JSON.parse(req.body.toString())
         switch(type){
             case 'user.created':{
-                console.log("PRIMARY EMAIL ID:", data.primary_email_address_id);
-console.log("EMAIL ADDRESSES:", JSON.stringify(data.email_addresses, null, 2));
+//                 console.log("PRIMARY EMAIL ID:", data.primary_email_address_id);
+// console.log("EMAIL ADDRESSES:", JSON.stringify(data.email_addresses, null, 2));
                 const userData={
                     _id:data.id,
                     // email:data.email_addresses[0].email_address,
@@ -23,7 +23,7 @@ console.log("EMAIL ADDRESSES:", JSON.stringify(data.email_addresses, null, 2));
     email => email.id === data.primary_email_address_id
 )?.email_address || '',
                     name:data.first_name+" "+data.last_name,
-                    image:data.image_url,
+                    image:data.profile_image_url,
                     resume:''
                 }
                 await User.create(userData)
@@ -31,12 +31,12 @@ console.log("EMAIL ADDRESSES:", JSON.stringify(data.email_addresses, null, 2));
                 break;
             }
             case 'user.updated':{
-                console.log("UPDATED IMAGE URL:", data.image_url);
-console.log("UPDATED PROFILE IMAGE URL:", data.profile_image_url);
+//                 console.log("UPDATED IMAGE URL:", data.image_url);
+// console.log("UPDATED PROFILE IMAGE URL:", data.profile_image_url);
                 const userData={
                     email:data.email_addresses[0].email_address,
                     name:data.first_name+" "+data.last_name,
-                    image:data.image_url
+                    image:data.profile_image_url
                 }
                 await User.findByIdAndUpdate(data.id,userData)
                 res.json({})
