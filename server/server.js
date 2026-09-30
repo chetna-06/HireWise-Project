@@ -10,11 +10,14 @@ import connectCloudinary from './config/cloudinary.js'
 import jobRoutes from './routes/jobRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
-import {clerkMiddleware} from '@clerk/express'
+import { clerkMiddleware } from '@clerk/express'
 
 
 //Initialize express
-const app=express()
+const app = express()
+
+app.use(cors());
+
 
 //connect to databse
 await connectDB()
@@ -22,28 +25,28 @@ await connectCloudinary()
 console.log("Cloudinary configured")
 
 //middlewares
-app.use(cors())
+
 app.post('/webhooks', express.raw({ type: 'application/json' }), clerkWebhooks)
 app.use(express.json())
 app.use(clerkMiddleware())
 
 //routes
-app.get('/',(req,res)=>res.send("API Working"))
+app.get('/', (req, res) => res.send("API Working"))
 app.get("/debug-sentry", function mainHandler(req, res) {
   throw new Error("My first Sentry error!");
 });
 // app.post('/webhooks',clerkWebhooks)
 
-app.use('/api/company',companyRoutes)
-app.use('/api/jobs',jobRoutes)
-app.use('/api/users',userRoutes)
+app.use('/api/company', companyRoutes)
+app.use('/api/jobs', jobRoutes)
+app.use('/api/users', userRoutes)
 app.use('/api/payments', paymentRoutes)
 
 //port
-const PORT=process.env.PORT || 5000
+const PORT = process.env.PORT || 5000
 Sentry.setupExpressErrorHandler(app);
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`)
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`)
 })
 
 
