@@ -17,7 +17,10 @@ const Navbar = () => {
             ?<div className='flex items-center gap-3'>
                 <Link to={'/applications'}>Applied Jobs</Link>
                 <p>|</p>
-                <Link to={'/pricing'} className='text-blue-600'>Pricing</Link>
+                {/* <Link to={'/pricing'} className='text-blue-600'>Pricing</Link> */}
+                <Link to={'/pricing'} className='text-black hover:text-black'>
+    Upgrade Plan
+</Link>
                 <p>|</p>
                 {planInfo?.role==='user' && (
                   <span className={`text-xs px-2 py-1 rounded ${planInfo.plan==='pro' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{planInfo.plan==='pro' ? `Pro` : `${planInfo.used}/${planInfo.limit} free`}</span>
