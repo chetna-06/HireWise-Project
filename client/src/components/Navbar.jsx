@@ -26,7 +26,8 @@ const Navbar = () => {
                 <UserButton/>
             </div>
             :<div className='flex gap-4 max-sm:text-xs items-center'>
-            <Link to={'/pricing'} className='text-gray-600'>Pricing</Link>
+            {/* <Link to={'/pricing'} className='text-gray-600'>Pricing</Link> */}
+            <Link to={'/pricing'} className='text-black'>Upgrade Plan</Link>
             <button onClick={e=>setShowRecruiterLogin(true)} className='text-gray-600'>Recruiter Login</button>
             <button onClick={ e=> openSignIn()} className='bg-blue-600 text-white px-6 sm:px-9 py-2 rounded-full '>Login</button>
         </div>
