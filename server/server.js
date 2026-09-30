@@ -10,6 +10,8 @@ import connectCloudinary from './config/cloudinary.js'
 import jobRoutes from './routes/jobRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
+import seedAdmin from './utils/seedAdmin.js'
 import { clerkMiddleware } from '@clerk/express'
 
 
@@ -21,6 +23,7 @@ app.use(cors());
 
 //connect to databse
 await connectDB()
+await seedAdmin()
 await connectCloudinary()
 console.log("Cloudinary configured")
 
@@ -41,6 +44,7 @@ app.use('/api/company', companyRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/payments', paymentRoutes)
+app.use('/api/admin', adminRoutes)
 
 //port
 const PORT = process.env.PORT || 5000

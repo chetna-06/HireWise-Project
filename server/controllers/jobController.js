@@ -5,10 +5,12 @@ import Job from "../models/Job.js"
 //get all jobs
 export const getJobs=async(req,res)=>{
     try{
-        const jobs=await Job.find({visible:true})
+        const jobs=await Job.find({visible:true,status:'approved'})
         .populate({path:'companyId',select:'-password'})
 
-        res.json({success:true,jobs})
+        // Hide jobs from blocked recruiters
+        const filtered=jobs.filter((j)=>j.companyId && !j.companyId.isBlocked)
+        res.json({success:true,jobs:filtered})
     }
     catch(error){
         res.json({success:false,message:error.message})
@@ -29,6 +31,18 @@ export const getJobById=async(req,res)=>{
             return res.json({
                 success:false,
                 message:'Job not found'
+            })
+        }
+        if(job.status==='rejected'){
+            return res.json({
+                success:false,
+                message:'Job not available'
+            })
+        }
+        if(job.companyId?.isBlocked){
+            return res.json({
+                success:false,
+                message:'Job not available'
             })
         }
         res.json({

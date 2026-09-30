@@ -9,6 +9,8 @@ const companySchema=new mongoose.Schema({
     proSince:{type:Date,default:null},
     razorpayOrderId:{type:String,default:null},
     razorpayPaymentId:{type:String,default:null},
+    isVerified:{type:Boolean,default:false},
+    isBlocked:{type:Boolean,default:false},
 })
 
 const Company=mongoose.model('Company',companySchema)

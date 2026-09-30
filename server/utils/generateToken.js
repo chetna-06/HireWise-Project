@@ -6,4 +6,10 @@ const generateToken=(id)=>{
     })
 }
 
+export const generateAdminToken=(id)=>{
+    return jwt.sign({id,type:'admin'},process.env.JWT_SECRET,{
+        expiresIn:'1d'
+    })
+}
+
 export default generateToken

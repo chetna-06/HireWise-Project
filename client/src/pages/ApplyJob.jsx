@@ -22,7 +22,7 @@ const ApplyJob = () => {
     const [isAlreadyApplied,setIsAlreadyApplied]=useState(false)
     const [showUpgrade,setShowUpgrade]=useState(false)
     const [limitInfo,setLimitInfo]=useState(null)
-    const {jobs,backendUrl,userData,userApplications,fetchUserApplications,fetchPlanStatus,planInfo}=useContext(AppContext)
+    const {jobs,backendUrl,userData,fetchUserData,userApplications,fetchUserApplications,fetchPlanStatus,planInfo}=useContext(AppContext)
     const fetchJob=async()=>{
         try{
             const {data}=await axios.get(backendUrl+`/api/jobs/${id}`)
@@ -71,6 +71,9 @@ const ApplyJob = () => {
                 setLimitInfo(payload)
                 setShowUpgrade(true)
                 toast.warn(payload?.message || 'Free limit reached. Upgrade to Pro.')
+            } else if(error.response?.status===403 || payload?.code==='ACCOUNT_BLOCKED'){
+                toast.error('Your account has been blocked by admin')
+                fetchUserData?.()
             } else {
                 toast.error(payload?.message || error.message)
             }

@@ -10,6 +10,15 @@ import AddJob from './pages/AddJob'
 import ManageJobs from './pages/ManageJobs'
 import ViewApplications from './pages/ViewApplications'
 import Pricing from './pages/Pricing'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminGuard from './components/AdminGuard'
+import AdminOverview from './pages/AdminOverview'
+import AdminUsers from './pages/AdminUsers'
+import AdminRecruiters from './pages/AdminRecruiters'
+import AdminJobs from './pages/AdminJobs'
+import AdminApplications from './pages/AdminApplications'
+import AdminSubscriptions from './pages/AdminSubscriptions'
 import 'quill/dist/quill.snow.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,6 +34,17 @@ function App() {
         <Route path='/apply-job/:id' element={<ApplyJob/>}></Route>
         <Route path='/applications' element={<Applications/>}></Route>
         <Route path='/pricing' element={<Pricing/>}></Route>
+        <Route path='/admin/login' element={<AdminLogin/>}></Route>
+        <Route element={<AdminGuard/>}>
+          <Route path='/admin' element={<AdminDashboard/>}>
+            <Route path='overview' element={<AdminOverview/>}></Route>
+            <Route path='users' element={<AdminUsers/>}></Route>
+            <Route path='recruiters' element={<AdminRecruiters/>}></Route>
+            <Route path='jobs' element={<AdminJobs/>}></Route>
+            <Route path='applications' element={<AdminApplications/>}></Route>
+            <Route path='subscriptions' element={<AdminSubscriptions/>}></Route>
+          </Route>
+        </Route>
         <Route path='/dashboard' element={<Dashboard/>}>
         {companyToken?<>
          <Route path='add-job' element={<AddJob/>}></Route>

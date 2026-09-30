@@ -19,6 +19,9 @@ export const getUserData=async(req,res)=>{
         if(!user){
             return res.json({success:false,message:'User Not Found'})
         }
+        if(user.isBlocked){
+            return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+        }
         res.json({success:true,user})
     }
     catch(error){
@@ -34,12 +37,15 @@ export const applyForJob=async(req,res)=>{
    // const userId=req.auth.userId
    const { userId } = req.auth()
     try{
+        // Free plan: seekers can apply to only FREE_APPLICATION_LIMIT jobs
+        const user=await User.findById(userId).select('plan isBlocked')
+        if(user?.isBlocked){
+            return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+        }
         const isAlreadyApplied=await JobApplication.find({jobId,userId})
         if(isAlreadyApplied.length>0){
             return res.json({success:false,message:'Already Applied'})
         }
-        // Free plan: seekers can apply to only FREE_APPLICATION_LIMIT jobs
-        const user=await User.findById(userId).select('plan')
         const applicationCount=await JobApplication.countDocuments({userId})
         if(user?.plan!=='pro' && applicationCount>=FREE_APPLICATION_LIMIT){
             return res.status(402).json({
@@ -75,6 +81,11 @@ export const getUserJobApplications = async (req,res) => {
         //const userId = req.auth.userId
         const { userId } = req.auth()
 
+        const user=await User.findById(userId).select('isBlocked')
+        if(user?.isBlocked){
+            return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+        }
+
         const applications = await JobApplication.find({userId})
         .populate('companyId','name email image')
         .populate('jobId','title description location category level salary')
@@ -98,6 +109,10 @@ export const updateUserResume = async(req,res) => {
         const resumeFile = req.file
 
         const userData = await User.findById(userId)
+
+        if(userData?.isBlocked){
+            return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+        }
 
         if(resumeFile){
             const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)

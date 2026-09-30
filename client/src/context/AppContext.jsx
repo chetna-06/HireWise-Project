@@ -23,6 +23,8 @@ export const AppContextProvider=(props)=>{
     const [userData,setUserData]=useState(null)
     const [userApplications,setUserApplications]=useState([])
     const [planInfo,setPlanInfo]=useState(null)
+    const [adminToken,setAdminToken]=useState(()=>localStorage.getItem('adminToken'))
+    const [adminData,setAdminData]=useState(null)
 
 
     const fetchJobs=async()=>{
@@ -69,12 +71,23 @@ export const AppContextProvider=(props)=>{
                     setUserData(data.user)
                 }
                 else{
-                    toast.error(data.message)
+                    if(data.code==='ACCOUNT_BLOCKED'){
+                        setUserData(null)
+                        toast.error('Your account has been blocked by admin')
+                    } else {
+                        toast.error(data.message)
+                    }
                 }
             
         }
         catch(error){
-            toast.error(error.message)
+            const payload=error.response?.data
+            if(error.response?.status===403 && payload?.code==='ACCOUNT_BLOCKED'){
+                setUserData(null)
+                toast.error('Your account has been blocked by admin')
+            } else {
+                toast.error(payload?.message || error.message)
+            }
         }
 
     }
@@ -144,6 +157,26 @@ useEffect(()=>{
         fetchPlanStatus()
     }
 },[companyToken,user])
+const fetchAdminData=async()=>{
+    if(!adminToken) return
+    try{
+        const {data}=await axios.get(backendUrl+'/api/admin/me',{headers:{admintoken:adminToken}})
+        if(data.success) setAdminData(data.admin)
+        else { setAdminData(null) }
+    }
+    catch(error){ setAdminData(null) }
+}
+const adminLogout=()=>{
+    setAdminToken(null)
+    setAdminData(null)
+    localStorage.removeItem('adminToken')
+}
+useEffect(()=>{
+    if(adminToken){
+        localStorage.setItem('adminToken',adminToken)
+        fetchAdminData()
+    }
+},[adminToken])
 const value={
         setSearchFilter,searchFilter,
         isSearched,setIsSearched,
@@ -158,7 +191,10 @@ const value={
         fetchUserApplications,
         fetchCompanyData,
         planInfo,setPlanInfo,
-        fetchPlanStatus
+        fetchPlanStatus,
+        adminToken,setAdminToken,
+        adminData,setAdminData,
+        fetchAdminData,adminLogout
     }
     return (<AppContext.Provider value={value}>
         {props.children}

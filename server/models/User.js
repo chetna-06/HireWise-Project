@@ -9,6 +9,7 @@ const userSchema=new mongoose.Schema({
     proSince:{type:Date,default:null},
     razorpayOrderId:{type:String,default:null},
     razorpayPaymentId:{type:String,default:null},
+    isBlocked:{type:Boolean,default:false},
 })
 
 const User=mongoose.model('User',userSchema)

@@ -10,6 +10,9 @@ const jobSchema=new mongoose.Schema({
     date:{type:Number,required:true},
     visible:{type:Boolean,default:true},
     companyId:{type:mongoose.Schema.Types.ObjectId,ref:'Company',required:true},
+    status:{type:String,enum:['pending','approved','rejected'],default:'approved'},
+    moderatedBy:{type:mongoose.Schema.Types.ObjectId,ref:'Admin',default:null},
+    moderatedAt:{type:Date,default:null},
 }) 
 const Job=mongoose.model('Job',jobSchema)
 

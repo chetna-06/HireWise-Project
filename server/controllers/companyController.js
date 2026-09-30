@@ -53,6 +53,12 @@ export const loginCompany=async(req,res)=>{
     const {email,password}=req.body
     try{
         const company=await Company.findOne({email})
+        if(!company){
+            return res.json({success:false,message:'Invalid email or password'})
+        }
+        if(company.isBlocked){
+            return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+        }
         if(await bcrypt.compare(password,company.password)){
             res.json({
                 success:true,
