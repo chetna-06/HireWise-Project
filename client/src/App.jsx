@@ -19,6 +19,8 @@ import AdminRecruiters from './pages/AdminRecruiters'
 import AdminJobs from './pages/AdminJobs'
 import AdminApplications from './pages/AdminApplications'
 import AdminSubscriptions from './pages/AdminSubscriptions'
+import Blocked from './pages/Blocked'
+import UserBlockedGuard from './components/UserBlockedGuard'
 import 'quill/dist/quill.snow.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -30,9 +32,12 @@ function App() {
       { showRecruiterLogin && <RecruiterLogin/>}
       <ToastContainer />
       <Routes>
-        <Route path='/' element={<Home/>}></Route>
-        <Route path='/apply-job/:id' element={<ApplyJob/>}></Route>
-        <Route path='/applications' element={<Applications/>}></Route>
+        <Route path='/blocked' element={<Blocked/>}></Route>
+        <Route element={<UserBlockedGuard/>}>
+          <Route path='/' element={<Home/>}></Route>
+          <Route path='/apply-job/:id' element={<ApplyJob/>}></Route>
+          <Route path='/applications' element={<Applications/>}></Route>
+        </Route>
         <Route path='/pricing' element={<Pricing/>}></Route>
         <Route path='/admin/login' element={<AdminLogin/>}></Route>
         <Route element={<AdminGuard/>}>

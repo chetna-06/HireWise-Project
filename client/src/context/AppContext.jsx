@@ -21,6 +21,7 @@ export const AppContextProvider=(props)=>{
     const [companyToken,setCompanyToken]=useState(null)
     const [companyData,setCompanyData]=useState(null)
     const [userData,setUserData]=useState(null)
+    const [userBlocked,setUserBlocked]=useState(false)
     const [userApplications,setUserApplications]=useState([])
     const [planInfo,setPlanInfo]=useState(null)
     const [adminToken,setAdminToken]=useState(()=>localStorage.getItem('adminToken'))
@@ -69,10 +70,12 @@ export const AppContextProvider=(props)=>{
                 {headers:{Authorization:`Bearer ${token}`}})
                 if(data.success){
                     setUserData(data.user)
+                    setUserBlocked(false)
                 }
                 else{
                     if(data.code==='ACCOUNT_BLOCKED'){
                         setUserData(null)
+                        setUserBlocked(true)
                         toast.error('Your account has been blocked by admin')
                     } else {
                         toast.error(data.message)
@@ -84,6 +87,7 @@ export const AppContextProvider=(props)=>{
             const payload=error.response?.data
             if(error.response?.status===403 && payload?.code==='ACCOUNT_BLOCKED'){
                 setUserData(null)
+                setUserBlocked(true)
                 toast.error('Your account has been blocked by admin')
             } else {
                 toast.error(payload?.message || error.message)
@@ -150,6 +154,9 @@ useEffect(()=>{
     if(user){
         fetchUserData()
         fetchUserApplications()
+    } else {
+        setUserBlocked(false)
+        setUserData(null)
     }
 },[user])
 useEffect(()=>{
@@ -186,6 +193,7 @@ const value={
         companyData,setCompanyData,
         backendUrl,
         userData,setUserData,
+        userBlocked,setUserBlocked,
         userApplications,setUserApplications,
         fetchUserData,
         fetchUserApplications,

@@ -22,7 +22,7 @@ const ApplyJob = () => {
     const [isAlreadyApplied,setIsAlreadyApplied]=useState(false)
     const [showUpgrade,setShowUpgrade]=useState(false)
     const [limitInfo,setLimitInfo]=useState(null)
-    const {jobs,backendUrl,userData,fetchUserData,userApplications,fetchUserApplications,fetchPlanStatus,planInfo}=useContext(AppContext)
+    const {jobs,backendUrl,userData,fetchUserData,userBlocked,userApplications,fetchUserApplications,fetchPlanStatus,planInfo}=useContext(AppContext)
     const fetchJob=async()=>{
         try{
             const {data}=await axios.get(backendUrl+`/api/jobs/${id}`)
@@ -43,6 +43,9 @@ const ApplyJob = () => {
 
     const applyHandler=async()=>{
         try{
+            if(userBlocked){
+                return toast.error('Your account has been blocked by admin')
+            }
             if(!userData){
                 return toast.error('Login to apply for jobs')
             }
