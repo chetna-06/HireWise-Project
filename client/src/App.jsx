@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import AddJob from './pages/AddJob'
 import ManageJobs from './pages/ManageJobs'
 import ViewApplications from './pages/ViewApplications'
+import Pricing from './pages/Pricing'
 import 'quill/dist/quill.snow.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,6 +24,7 @@ function App() {
         <Route path='/' element={<Home/>}></Route>
         <Route path='/apply-job/:id' element={<ApplyJob/>}></Route>
         <Route path='/applications' element={<Applications/>}></Route>
+        <Route path='/pricing' element={<Pricing/>}></Route>
         <Route path='/dashboard' element={<Dashboard/>}>
         {companyToken?<>
          <Route path='add-job' element={<AddJob/>}></Route>

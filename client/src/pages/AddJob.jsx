@@ -5,6 +5,7 @@ import axios from 'axios'
 import { useContext } from 'react'
 import { AppContext } from '../context/AppContext'
 import { toast } from 'react-toastify'
+import UpgradeModal from '../components/UpgradeModal'
 
 const AddJob = () => {
     const [title,setTitle]=useState('')
@@ -12,9 +13,11 @@ const AddJob = () => {
     const [category,setCategory]=useState('Programming')
     const [level,setLevel]=useState('Beginner Level')
     const [salary,setSalary]=useState(0)
+    const [showUpgrade,setShowUpgrade]=useState(false)
+    const [limitInfo,setLimitInfo]=useState(null)
     const editorRef=useRef(null)
     const quillRef=useRef(null)
-    const {backendUrl,companyToken}=useContext(AppContext)
+    const {backendUrl,companyToken,fetchPlanStatus,planInfo,fetchCompanyData}=useContext(AppContext)
 
     const onSubmitHandler=async(e)=>{
         e.preventDefault()
@@ -25,17 +28,25 @@ const AddJob = () => {
                 {headers:{token:companyToken}}
             )
             if(data.success){
-                toast.success(data.message)
+                toast.success(data.message || 'Job posted')
                 setTitle('')
                 setSalary(0)
                 quillRef.current.root.innerHTML=""
+                fetchPlanStatus?.()
             }
             else{
                 toast.error(data.message)
             }
         }
         catch(error){
-            toast.error(error.message)
+            const payload=error.response?.data
+            if(error.response?.status===402 || payload?.code==='LIMIT_EXCEEDED'){
+                setLimitInfo(payload)
+                setShowUpgrade(true)
+                toast.warn(payload?.message || 'Free limit reached. Upgrade to Pro.')
+            } else {
+                toast.error(payload?.message || error.message)
+            }
         }
     }
 
@@ -49,7 +60,16 @@ const AddJob = () => {
     },[])
 
   return (
-    <form onSubmit={onSubmitHandler} className='container p-4 flex flex-col w-full items-start gap-3'>
+    <>
+    <div className='container p-4 flex flex-col w-full items-start gap-3'>
+        <div className='w-full max-w-lg rounded-lg bg-gray-50 border px-3 py-2 text-sm text-gray-600'>
+          {planInfo?.role==='company' ? (
+            <span>Job posts: <b>{planInfo.used}/{planInfo.limit}</b> {planInfo.plan==='pro' ? '(Pro — unlimited)' : '(Free)'} {planInfo.plan!=='pro' && <button type="button" onClick={()=>setShowUpgrade(true)} className='ml-2 text-blue-600 underline'>Upgrade</button>}</span>
+          ) : (
+            <span>Free plan: 5 job posts. Upgrade to Pro for unlimited posts. <button type="button" onClick={()=>setShowUpgrade(true)} className='ml-1 text-blue-600 underline'>Upgrade</button></span>
+          )}
+        </div>
+    <form onSubmit={onSubmitHandler} className='flex flex-col w-full items-start gap-3'>
         <div className='w-full'>
             <p className='mb-2'>Job Title</p>
             <input className='w-full max-w-lg px-3 py-2 border-2 border-gray-300 rounded' type="text" placeholder='Type here' onChange={e=>setTitle(e.target.value)} value={title} required/>
@@ -92,6 +112,19 @@ const AddJob = () => {
         </div>
         <button className='w-28 py-3 mt-4 bg-black text-white rounded'>ADD</button>
     </form>
+    </div>
+    {showUpgrade && (
+      <UpgradeModal
+        role="company"
+        backendUrl={backendUrl}
+        getHeaders={async()=>({token:companyToken})}
+        used={limitInfo?.used ?? planInfo?.used}
+        limit={limitInfo?.limit ?? planInfo?.limit ?? 5}
+        onUpgraded={()=>{ fetchPlanStatus?.(); fetchCompanyData?.(); }}
+        onClose={()=>{ setShowUpgrade(false); setLimitInfo(null); }}
+      />
+    )}
+    </>
   )
 }
 

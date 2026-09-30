@@ -66,6 +66,7 @@ const ManageJobs = () => {
     <p className='text-xl sm:text-2xl'>No Jobs Available or posted</p>
   </div>): (
     <div className='container p-4 max-w-5xl'>
+        <div className='mb-3 text-sm text-gray-600'>Job posts: <b>{jobs.length}/5</b> on free plan. Upgrade to Pro for unlimited.</div>
         <div className='overflow-x-auto'>
             <table className='min-w-full bg-white border border-gray-200 max-sm:text-sm'>
                 <thead >

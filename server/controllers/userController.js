@@ -2,6 +2,7 @@ import Job from "../models/Job.js"
 import JobApplication from "../models/JobApplications.js"
 import  User  from "../models/User.js"
 import {v2 as cloudinary} from 'cloudinary'
+import { FREE_APPLICATION_LIMIT } from "../utils/planLimits.js"
 
 
 //get user data
@@ -36,6 +37,19 @@ export const applyForJob=async(req,res)=>{
         const isAlreadyApplied=await JobApplication.find({jobId,userId})
         if(isAlreadyApplied.length>0){
             return res.json({success:false,message:'Already Applied'})
+        }
+        // Free plan: seekers can apply to only FREE_APPLICATION_LIMIT jobs
+        const user=await User.findById(userId).select('plan')
+        const applicationCount=await JobApplication.countDocuments({userId})
+        if(user?.plan!=='pro' && applicationCount>=FREE_APPLICATION_LIMIT){
+            return res.status(402).json({
+                success:false,
+                code:'LIMIT_EXCEEDED',
+                message:`Free plan allows only ${FREE_APPLICATION_LIMIT} job applications. Upgrade to Pro for unlimited applications.`,
+                used:applicationCount,
+                limit:FREE_APPLICATION_LIMIT,
+                plan:user?.plan || 'free'
+            })
         }
         const jobData=await Job.findById(jobId)
         if(!jobData){

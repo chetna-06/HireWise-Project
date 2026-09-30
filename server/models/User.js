@@ -4,7 +4,11 @@ const userSchema=new mongoose.Schema({
     name:{type:String,required:true},
     email:{type:String,required:true,unique:true},
     resume:{type:String},
-    image:{type:String,required:true}
+    image:{type:String,required:true},
+    plan:{type:String,enum:['free','pro'],default:'free'},
+    proSince:{type:Date,default:null},
+    razorpayOrderId:{type:String,default:null},
+    razorpayPaymentId:{type:String,default:null},
 })
 
 const User=mongoose.model('User',userSchema)

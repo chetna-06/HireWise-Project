@@ -9,6 +9,7 @@ import { useUser,useAuth } from '@clerk/clerk-react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useEffect } from 'react'
+import UpgradeModal from '../components/UpgradeModal'
 
 
 const Applications = () => {
@@ -16,7 +17,8 @@ const Applications = () => {
     const {getToken}=useAuth()
     const [isEdit,setIsEdit]=useState(false)
     const [resume,setResume]=useState(null)
-    const {backendUrl,userData,userApplications,fetchUserData,fetchUserApplications}=useContext(AppContext)
+    const [showUpgrade,setShowUpgrade]=useState(false)
+    const {backendUrl,userData,userApplications,fetchUserData,fetchUserApplications,planInfo,fetchPlanStatus}=useContext(AppContext)
 
     const updateResume=async()=>{
         try{
@@ -76,7 +78,17 @@ const Applications = () => {
         }
         </div>
         <div>
-            <h2 className='text-xl font-semibold mb-4'>Job Applied</h2>
+            <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-xl font-semibold'>Job Applied {userApplications?.length ? `(${userApplications.length}/${planInfo?.limit || 5})` : ''}</h2>
+            {userData?.plan!=='pro' && (
+              <button onClick={()=>setShowUpgrade(true)} className='text-sm bg-blue-600 text-white px-4 py-1.5 rounded'>Upgrade to Pro</button>
+            )}
+            </div>
+            {userData?.plan==='pro' ? (
+              <p className='mb-3 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2 inline-block'>Pro plan active — unlimited applications</p>
+            ) : (
+              <p className='mb-3 text-xs text-gray-500'>Free plan: {userApplications?.length || 0}/5 applications used</p>
+            )}
             <table className='min-w-full bg-white border rounded-lg'>
                 <thead>
                     <tr>
@@ -109,6 +121,20 @@ const Applications = () => {
             </table>
         </div>
     </div>
+    {showUpgrade && (
+      <UpgradeModal
+        role="user"
+        backendUrl={backendUrl}
+        getHeaders={async()=>{
+          const token=await getToken()
+          return {Authorization:`Bearer ${token}`}
+        }}
+        used={planInfo?.used ?? userApplications?.length}
+        limit={planInfo?.limit ?? 5}
+        onUpgraded={()=>{ fetchUserData?.(); fetchUserApplications?.(); fetchPlanStatus?.(); }}
+        onClose={()=>setShowUpgrade(false)}
+      />
+    )}
     <Footer/>
     </>
   )

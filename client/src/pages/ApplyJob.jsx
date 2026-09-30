@@ -11,6 +11,7 @@ import Footer from '../components/Footer'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 import { useAuth } from '@clerk/clerk-react'
+import UpgradeModal from '../components/UpgradeModal'
 
 const ApplyJob = () => {
 
@@ -19,7 +20,9 @@ const ApplyJob = () => {
     const navigate=useNavigate()
     const [JobData,setJobData]=useState(null)
     const [isAlreadyApplied,setIsAlreadyApplied]=useState(false)
-    const {jobs,backendUrl,userData,userApplications,fetchUserApplications}=useContext(AppContext)
+    const [showUpgrade,setShowUpgrade]=useState(false)
+    const [limitInfo,setLimitInfo]=useState(null)
+    const {jobs,backendUrl,userData,userApplications,fetchUserApplications,fetchPlanStatus,planInfo}=useContext(AppContext)
     const fetchJob=async()=>{
         try{
             const {data}=await axios.get(backendUrl+`/api/jobs/${id}`)
@@ -55,6 +58,7 @@ const ApplyJob = () => {
             if(data.success){
                 toast.success(data.message)
                 fetchUserApplications()
+                fetchPlanStatus?.()
             }
             else{
                 toast.error(data.message)
@@ -62,7 +66,14 @@ const ApplyJob = () => {
 
         }
         catch(error){
-            toast.error(error.message)
+            const payload=error.response?.data
+            if(error.response?.status===402 || payload?.code==='LIMIT_EXCEEDED'){
+                setLimitInfo(payload)
+                setShowUpgrade(true)
+                toast.warn(payload?.message || 'Free limit reached. Upgrade to Pro.')
+            } else {
+                toast.error(payload?.message || error.message)
+            }
         }
     }
 
@@ -116,6 +127,11 @@ const ApplyJob = () => {
                 <div className='flex flex-col justify-center text-end text-sm max-md:mx-auto max-md:text-center'>
                     <button onClick={applyHandler} className='bg-blue-600 p-2.5 px-10 text-white rounded'>{isAlreadyApplied ? 'Already Applied' :'Apply Now'}</button>
                     <p className='mt-1 text-gray-600'>Posted {moment(JobData.date).fromNow()}</p>
+                    {planInfo?.role==='user' ? (
+                      <p className='mt-1 text-xs text-gray-500'>Applications: {planInfo.used}/{planInfo.limit} {planInfo.plan==='pro' ? '(Pro)' : <button className='text-blue-600 underline' onClick={()=>setShowUpgrade(true)}>Upgrade</button>}</p>
+                    ) : userApplications?.length>=4 ? (
+                      <p className='mt-1 text-xs text-gray-500'>Applications: {userApplications.length}/5 <button className='text-blue-600 underline' onClick={()=>setShowUpgrade(true)}>Upgrade</button></p>
+                    ) : null}
                 </div>
                 </div>
                 <div className='flex flex-col lg:flex-row justify-between items-start'>
@@ -140,6 +156,20 @@ const ApplyJob = () => {
             </div>
         </div>
     </div>
+    {showUpgrade && (
+      <UpgradeModal
+        role="user"
+        backendUrl={backendUrl}
+        getHeaders={async()=>{
+          const token=await getToken()
+          return {Authorization:`Bearer ${token}`}
+        }}
+        used={limitInfo?.used ?? planInfo?.used ?? userApplications?.length}
+        limit={limitInfo?.limit ?? planInfo?.limit ?? 5}
+        onUpgraded={()=>{ fetchUserApplications?.(); fetchPlanStatus?.(); }}
+        onClose={()=>{ setShowUpgrade(false); setLimitInfo(null); }}
+      />
+    )}
     <Footer/>
     </>
   ):(

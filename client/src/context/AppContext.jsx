@@ -22,6 +22,7 @@ export const AppContextProvider=(props)=>{
     const [companyData,setCompanyData]=useState(null)
     const [userData,setUserData]=useState(null)
     const [userApplications,setUserApplications]=useState([])
+    const [planInfo,setPlanInfo]=useState(null)
 
 
     const fetchJobs=async()=>{
@@ -96,6 +97,29 @@ const fetchUserApplications=async()=>{
     }
 }
 
+//fetch plan/limit status for current role (company preferred if logged in)
+const fetchPlanStatus=async()=>{
+    try{
+        const headers={}
+        if(companyToken){
+            headers.token=companyToken
+        } else if(user){
+            const token=await getToken()
+            if(token) headers.Authorization=`Bearer ${token}`
+            else return
+        } else {
+            return
+        }
+        const {data}=await axios.get(backendUrl+'/api/payments/plan',{headers})
+        if(data.success){
+            setPlanInfo(data)
+        }
+    }
+    catch(error){
+        // Fully silent: plan widget is non-critical, avoid scary "Network Error" logs when backend is down
+    }
+}
+
     useEffect(()=>{
         fetchJobs()
         const storedCompanyToken=localStorage.getItem('companyToken')
@@ -115,6 +139,11 @@ useEffect(()=>{
         fetchUserApplications()
     }
 },[user])
+useEffect(()=>{
+    if(companyToken || user){
+        fetchPlanStatus()
+    }
+},[companyToken,user])
 const value={
         setSearchFilter,searchFilter,
         isSearched,setIsSearched,
@@ -126,7 +155,10 @@ const value={
         userData,setUserData,
         userApplications,setUserApplications,
         fetchUserData,
-        fetchUserApplications
+        fetchUserApplications,
+        fetchCompanyData,
+        planInfo,setPlanInfo,
+        fetchPlanStatus
     }
     return (<AppContext.Provider value={value}>
         {props.children}

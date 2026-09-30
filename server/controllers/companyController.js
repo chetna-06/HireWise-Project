@@ -4,6 +4,7 @@ import {v2 as cloudinary} from "cloudinary"
 import generateToken from "../utils/generateToken.js";
 import Job from "../models/Job.js";
 import JobApplication from "../models/JobApplications.js";
+import { FREE_JOB_POST_LIMIT } from "../utils/planLimits.js";
 
 export const registerCompany=async(req,res)=>{
     const {name,email,password}=req.body
@@ -94,6 +95,19 @@ export const postJob=async(req,res)=>{
     // console.log(companyId,{title,description,location,salary});
 
     try{
+        // Free plan: recruiters can post only FREE_JOB_POST_LIMIT jobs
+        const company=await Company.findById(companyId).select('plan')
+        const jobCount=await Job.countDocuments({companyId})
+        if(company?.plan!=='pro' && jobCount>=FREE_JOB_POST_LIMIT){
+            return res.status(402).json({
+                success:false,
+                code:'LIMIT_EXCEEDED',
+                message:`Free plan allows only ${FREE_JOB_POST_LIMIT} job posts. Upgrade to Pro for unlimited posts.`,
+                used:jobCount,
+                limit:FREE_JOB_POST_LIMIT,
+                plan:company?.plan || 'free'
+            })
+        }
         const newJob=new Job({
             title,
             description,
@@ -139,7 +153,8 @@ export const getCompanyPostedJobs=async(req,res)=>{
             const applicants=await JobApplication.find({jobId:job._id})
             return {...job.toObject(),applicants:applicants.length}
         }))
-         res.json({success:true,jobsData})
+         const company=await Company.findById(companyId).select('plan')
+         res.json({success:true,jobsData,plan:company?.plan || 'free',used:jobs.length,limit:FREE_JOB_POST_LIMIT})
     }
     catch(error){
         res.json({success:false,message:error.message})

@@ -2,11 +2,13 @@ import React, { useContext }  from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import UpgradeModal from '../components/UpgradeModal'
 
 const Dashboard = () => {
     const navigate=useNavigate()
-    const {companyData,setCompanyData,setCompanyToken}=useContext(AppContext)
+    const {companyData,setCompanyData,setCompanyToken,backendUrl,companyToken,planInfo,fetchPlanStatus,fetchCompanyData}=useContext(AppContext)
+    const [showUpgrade,setShowUpgrade]=useState(false)
     //logout 
     const logout=()=>{
         setCompanyToken(null)
@@ -30,6 +32,13 @@ const Dashboard = () => {
                 <img onClick={e=>navigate('/')} className='max-sm:w-32 cursor-pointer' src={assets.logo} alt="" />
                 {companyData &&(
                     <div className='flex items-center gap-3'>
+                    <span className={`text-xs px-2 py-1 rounded ${companyData.plan==='pro' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{companyData.plan==='pro' ? 'Pro' : 'Free'}</span>
+                    {companyData.plan!=='pro' && (
+                      <button onClick={()=>setShowUpgrade(true)} className='text-xs bg-blue-600 text-white px-3 py-1.5 rounded'>Upgrade</button>
+                    )}
+                    {planInfo?.role==='company' && (
+                      <span className='text-xs text-gray-500 max-sm:hidden'>{planInfo.used}/{planInfo.limit} jobs</span>
+                    )}
                     
                     <p className='max-sm:hidden'>Welcome, {companyData.name}</p>
                     <div className='relative group'>
@@ -68,7 +77,17 @@ const Dashboard = () => {
                 <Outlet/>
             </div>
         </div>
-       
+        {showUpgrade && (
+          <UpgradeModal
+            role="company"
+            backendUrl={backendUrl}
+            getHeaders={async()=>({token:companyToken})}
+            used={planInfo?.used}
+            limit={planInfo?.limit ?? 5}
+            onUpgraded={()=>{ fetchCompanyData?.(); fetchPlanStatus?.(); }}
+            onClose={()=>setShowUpgrade(false)}
+          />
+        )}
     </div>
   )
 }
