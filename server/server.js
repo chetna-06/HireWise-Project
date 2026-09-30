@@ -9,6 +9,7 @@ import companyRoutes from './routes/companyRoutes.js'
 import connectCloudinary from './config/cloudinary.js'
 import jobRoutes from './routes/jobRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import paymentRoutes from './routes/paymentRoutes.js'
 import {clerkMiddleware} from '@clerk/express'
 
 
