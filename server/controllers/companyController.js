@@ -133,19 +133,135 @@ export const postJob=async(req,res)=>{
 
 }
 
-export const getCompanyJobApplicants=async(req,res)=>{
-    try{
-        const companyId=req.company._id
-        //find job application
-        const applications=await JobApplication.find({companyId})
-        .populate('userId','name image resume')
-        .populate('jobId','title location category salary')
-        .exec()
+// export const getCompanyJobApplicants=async(req,res)=>{
+//     try{
+//         const companyId=req.company._id
+//         //find job application
+//         const applications=await JobApplication.find({companyId})
+//         .populate('userId','name image resume')
+//         .populate('jobId','title location category salary')
+//         .exec()
 
-        return res.json({success:true,applications})
-    }
-    catch(error){
-        res.json({success:false,message:error.message})
+//         return res.json({success:true,applications})
+//     }
+//     catch(error){
+//         res.json({success:false,message:error.message})
+//     }
+// }
+export const getCompanyJobApplicants = async (req, res) => {
+    try {
+
+        const companyId = req.company._id
+
+        // Get all applications of this company
+        const applications = await JobApplication.find({ companyId })
+            .populate('userId', 'name image resume resumeText')
+            .populate('jobId', 'title description location category salary')
+            .exec()
+
+        // Calculate match score for every applicant
+        const scoredApplications = applications.map(application => {
+
+            const resumeText = (
+                application.userId?.resumeText || ''
+            ).toLowerCase()
+
+            const jobText = (
+                (application.jobId?.title || '') + ' ' +
+                (application.jobId?.description || '') + ' ' +
+                (application.jobId?.category || '') + ' ' +
+                (application.jobId?.location || '')
+            ).toLowerCase()
+
+            // Common technical skills / keywords
+            const keywords = [
+                'javascript',
+                'java',
+                'python',
+                'c++',
+                'c#',
+                'react',
+                'react.js',
+                'node.js',
+                'nodejs',
+                'express',
+                'mongodb',
+                'mysql',
+                'sql',
+                'html',
+                'css',
+                'tailwind',
+                'angular',
+                'vue',
+                'typescript',
+                'php',
+                'laravel',
+                'django',
+                'flask',
+                'spring',
+                'spring boot',
+                'machine learning',
+                'artificial intelligence',
+                'ai',
+                'data science',
+                'data analysis',
+                'git',
+                'github',
+                'docker',
+                'aws',
+                'azure',
+                'rest api',
+                'api',
+                'figma',
+                'communication',
+                'leadership'
+            ]
+
+            // Find keywords present in the job
+            const jobKeywords = keywords.filter(keyword =>
+                jobText.includes(keyword)
+            )
+
+            // Find job keywords present in resume
+            const matchedKeywords = jobKeywords.filter(keyword =>
+                resumeText.includes(keyword)
+            )
+
+            let matchScore = 0
+
+            if (jobKeywords.length > 0) {
+                matchScore = Math.round(
+                    (matchedKeywords.length / jobKeywords.length) * 100
+                )
+            }
+
+            return {
+                ...application.toObject(),
+
+                matchScore,
+
+                matchedSkills: matchedKeywords
+            }
+        })
+
+        // Highest match first
+        scoredApplications.sort(
+            (a, b) => b.matchScore - a.matchScore
+        )
+
+        return res.json({
+            success: true,
+            applications: scoredApplications
+        })
+
+    } catch (error) {
+
+        console.error("Applicant Matching Error:", error)
+
+        res.json({
+            success: false,
+            message: error.message
+        })
     }
 }
 

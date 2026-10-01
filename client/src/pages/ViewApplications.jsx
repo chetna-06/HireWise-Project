@@ -11,6 +11,14 @@ import Loading from '../components/Loading'
 const ViewApplications = () => {
     const {backendUrl,companyToken}=useContext(AppContext)
     const [applicants,setApplicants]=useState(false)
+    const topFiveIds = new Set(
+    applicants
+        ? applicants
+            .filter(item => item.matchScore > 0)
+            .slice(0, 5)
+            .map(item => item._id)
+        : []
+)
     //to fetch company job application
     const fetchCompanyJobApplications=async()=>{
         try{
@@ -18,7 +26,7 @@ const ViewApplications = () => {
                 {headers:{token:companyToken}}
             )
             if(data.success){
-                setApplicants(data.applications.reverse())
+                setApplicants(data.applications)
             }
             else{
                 toast.error(data.message)
@@ -74,12 +82,21 @@ const ViewApplications = () => {
                         <th className='py-2 px-4 text-left max-sm:hidden'>Job Title</th>
                         <th className='py-2 px-4 text-left max-sm:hidden'>Location</th>
                         <th className='py-2 px-4 text-left'>Resume</th>
+                        <th className='py-2 px-4 text-left'>Match</th>
                         <th className='py-2 px-4 text-left'>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {applicants.filter(item=>item.jobId && item.userId).map((applicant,index)=>(
-                        <tr key={index} className='text-gray-700'>
+                        // <tr key={index} className='text-gray-700'>
+                        <tr
+    key={index}
+    className={`text-gray-700 ${
+        topFiveIds.has(applicant._id)
+            ? 'bg-green-50'
+            : ''
+    }`}
+>
                             <td className='py-2 px-4 border-b text-center'>{index+1}</td>
                             <td className='py-2 px-4 border-b text-center flex items-center'>
                                 <img className='w-10 h-10 rounded-full mr-3 max-sm:hidden' src={applicant.userId.image} alt="" />
@@ -94,6 +111,25 @@ const ViewApplications = () => {
                                     Resume <img src={assets.resume_download_icon} alt="" />
                                 </a>
                             </td>
+                            <td className='py-2 px-4 border-b'>
+    <div>
+        <span className='font-semibold text-green-600'>
+            {applicant.matchScore || 0}%
+        </span>
+
+        {topFiveIds.has(applicant._id) && (
+            <div className='mt-1'>
+                <span className='text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded'>
+                    ⭐ Top 5 Match
+                </span>
+            </div>
+        )}
+
+        <div className='text-xs text-gray-500 mt-2'>
+            {applicant.matchedSkills?.join(', ') || 'No matching skills'}
+        </div>
+    </div>
+</td>
                             <td className='py-2 px-4 border-b relative'>
                                 {applicant.status==="Pending"
                                 ?

@@ -19,7 +19,8 @@ const Applications = () => {
     const [resume,setResume]=useState(null)
     const [showUpgrade,setShowUpgrade]=useState(false)
     const {backendUrl,userData,userApplications,fetchUserData,fetchUserApplications,planInfo,fetchPlanStatus}=useContext(AppContext)
-
+  
+            
     const updateResume=async()=>{
         try{
             const formData=new FormData();
@@ -78,6 +79,7 @@ const Applications = () => {
         }
         </div>
         <div>
+            
             <div className='flex items-center justify-between mb-4'>
             <h2 className='text-xl font-semibold'>Job Applied {userApplications?.length ? `(${userApplications.length}/${planInfo?.limit || 5})` : ''}</h2>
             {userData?.plan!=='pro' && (

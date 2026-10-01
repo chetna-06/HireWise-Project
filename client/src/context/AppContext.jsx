@@ -46,22 +46,49 @@ export const AppContextProvider=(props)=>{
         
     }
     //to fetch company dtaa
-    const fetchCompanyData=async()=>{
-        try{
-            const {data}=await axios.get(backendUrl+'/api/company/company',{headers:{token:companyToken}})
-            if(data.success){
-                setCompanyData(data.company)
-                console.log(data.company)
-            }
-            else{
-                toast.error(data.message)
-            }
+    // const fetchCompanyData=async()=>{
+    //     try{
+    //         const {data}=await axios.get(backendUrl+'/api/company/company',{headers:{token:companyToken}})
+    //         if(data.success){
+    //             setCompanyData(data.company)
+    //             console.log(data.company)
+    //         }
+    //         else{
+    //             toast.error(data.message)
+    //         }
 
+    //     }
+    //     catch(error){
+    //         toast.error(error.message)
+    //     }
+    // }
+    const fetchCompanyData = async () => {
+    try {
+        const { data } = await axios.get(
+            backendUrl + '/api/company/company',
+            {
+                headers: {
+                    token: companyToken
+                }
+            }
+        )
+
+        if (data.success) {
+            setCompanyData(data.company)
+        } else {
+            // Invalid/old company token
+            setCompanyData(null)
+            setCompanyToken(null)
+            localStorage.removeItem('companyToken')
         }
-        catch(error){
-            toast.error(error.message)
-        }
+
+    } catch (error) {
+        // Invalid or expired company token
+        setCompanyData(null)
+        setCompanyToken(null)
+        localStorage.removeItem('companyToken')
     }
+}
     //fetch user data
     const fetchUserData=async()=>{
         try{

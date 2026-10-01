@@ -3,6 +3,7 @@ import JobApplication from "../models/JobApplications.js"
 import  User  from "../models/User.js"
 import {v2 as cloudinary} from 'cloudinary'
 import { FREE_APPLICATION_LIMIT } from "../utils/planLimits.js"
+import { PDFParse } from 'pdf-parse'
 
 
 //get user data
@@ -101,7 +102,34 @@ export const getUserJobApplications = async (req,res) => {
     }
 }
 
-// update user profile (resume)
+
+// export const updateUserResume = async(req,res) => {
+//     try {
+//         const { userId } = req.auth()
+
+//         const resumeFile = req.file
+
+//         const userData = await User.findById(userId)
+
+//         if(userData?.isBlocked){
+//             return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+//         }
+
+//         if(resumeFile){
+//             const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)
+//             userData.resume = resumeUpload.secure_url
+//         }
+
+//         await userData.save()
+
+//         return res.json({success:true, message:'Resume updated'})
+
+//     } catch (error) {
+//         res.json({success:false,message:error.message})
+//     }
+// }
+
+
 export const updateUserResume = async(req,res) => {
     try {
         const { userId } = req.auth()
@@ -111,19 +139,62 @@ export const updateUserResume = async(req,res) => {
         const userData = await User.findById(userId)
 
         if(userData?.isBlocked){
-            return res.status(403).json({success:false,message:'Account blocked by admin',code:'ACCOUNT_BLOCKED'})
+            return res.status(403).json({
+                success:false,
+                message:'Account blocked by admin',
+                code:'ACCOUNT_BLOCKED'
+            })
         }
 
-        if(resumeFile){
-            const resumeUpload = await cloudinary.uploader.upload(resumeFile.path)
-            userData.resume = resumeUpload.secure_url
+        if(!resumeFile){
+            return res.json({
+                success:false,
+                message:'Please upload a resume'
+            })
         }
+
+        // Read PDF
+        const fs = await import('fs/promises')
+
+        const pdfBuffer = await fs.readFile(resumeFile.path)
+
+        // Extract text from PDF
+        const parser = new PDFParse({
+            data: pdfBuffer
+        })
+
+        const result = await parser.getText()
+
+        await parser.destroy()
+
+        const resumeText = result.text.trim()
+
+        // Upload resume to Cloudinary
+        const resumeUpload = await cloudinary.uploader.upload(
+            resumeFile.path,
+            {
+                resource_type:'raw'
+            }
+        )
+
+        userData.resume = resumeUpload.secure_url
+
+        // Save extracted resume text
+        userData.resumeText = resumeText
 
         await userData.save()
 
-        return res.json({success:true, message:'Resume updated'})
+        return res.json({
+            success:true,
+            message:'Resume updated'
+        })
 
     } catch (error) {
-        res.json({success:false,message:error.message})
+        console.error("Resume Upload Error:", error)
+
+        return res.json({
+            success:false,
+            message:error.message
+        })
     }
 }
